@@ -3,6 +3,7 @@ import sys
 import logging as log
 import datetime as dt
 from time import sleep
+import time
 
 cascPath = "haarcascade_frontalface_default.xml"
 faceCascade = cv2.CascadeClassifier(cascPath)
@@ -10,6 +11,23 @@ log.basicConfig(filename='webcam.log',level=log.INFO)
 
 video_capture = cv2.VideoCapture(0)
 anterior = 0
+
+def printRemind():
+    # Use putText() method for
+    # inserting text on video
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(frame, 
+                '>10s. Take a rest!', 
+                (50, 50), 
+                font, 1, 
+                (0, 255, 255), 
+                2, 
+                cv2.LINE_4)
+
+count=0
+timer=[]
+start=time.time()
+timer.append(start)
 
 while True:
     if not video_capture.isOpened():
@@ -28,16 +46,22 @@ while True:
         minNeighbors=5,
         minSize=(30, 30)
     )
-
+    
     # Draw a rectangle around the faces
     for (x, y, w, h) in faces:
+        timer.append(time.time())
+        count=count+1
+        if(timer[count]-timer[count-1]>5):
+            start=timer[count]
+        if(timer[count]-start>10):
+            printRemind()
         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-
+        
     if anterior != len(faces):
         anterior = len(faces)
         log.info("faces: "+str(len(faces))+" at "+str(dt.datetime.now()))
 
-
+      
     # Display the resulting frame
     cv2.imshow('Video', frame)
 
